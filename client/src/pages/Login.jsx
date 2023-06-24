@@ -1,14 +1,27 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { login } from "../features/user/userSlice";
 import axios from "axios";
+import { useDispatch } from "react-redux";
 const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const onLogin = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:8080/api/login", { email, password });
-      alert("Login Successful");
+      await axios.post("/api/login", { email, password }).then(({ data }) => {
+        dispatch(
+          login({
+            id: data.user._id,
+            name: data.user.name,
+            email: data.user.email,
+          })
+        );
+        alert("Login Successful");
+        navigate("/");
+      });
     } catch (error) {
       alert(error.response.data.error);
     }

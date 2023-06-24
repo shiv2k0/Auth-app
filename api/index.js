@@ -4,13 +4,16 @@ const cors = require("cors");
 const User = require("./model/User.js");
 const bcrypt = require("bcryptjs");
 const app = express();
-const PORT = 8080;
 const mongoose = require("mongoose");
 const bcryptSalt = bcrypt.genSaltSync(12);
-
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
+const jwtSecret = process.env.JWT_SECRET;
 mongoose.connect(process.env.MONGO_URL);
+const PORT = process.env.PORT;
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({ credentials: true, origin: "http://localhost:5173" }));
 
 app.post("/api/register", async (req, res) => {
@@ -25,15 +28,44 @@ app.post("/api/register", async (req, res) => {
 
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
-  const userData = await User.findOne({ email });
-  if (userData) {
-    const passOk = bcrypt.compareSync(password, userData.password);
+  const userDoc = await User.findOne({ email });
+  if (userDoc) {
+    const passOk = bcrypt.compareSync(password, userDoc.password);
     if (passOk) {
-      res.status(200).json({ success: true, msg: "Login Successful" });
+      jwt.sign(
+        { email: userDoc.email, name: userDoc.name, id: userDoc._id },
+        jwtSecret,
+        {},
+        (err, token) => {
+          if (err) throw err;
+          res
+            .status(200)
+            .cookie("token", token)
+            .json({ success: true, user: userDoc });
+        }
+      );
     } else {
       res.status(500).json({ error: "Incorrect Password" });
     }
   } else res.status(500).json({ error: "User Not Found" });
+});
+
+app.get("/api/profile", (req, res) => {
+  const { token } = req.cookies;
+  if (token) {
+    jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+      if (err) throw err;
+      const userDoc = await User.findById(userData.id);
+
+      res.status(200).json({ success: true, user: userDoc });
+    });
+  } else {
+    res.json(null);
+  }
+});
+
+app.post("/api/logout", (req, res) => {
+  res.cookie("token", "").json(true);
 });
 
 app.listen(PORT, () => {

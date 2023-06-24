@@ -1,21 +1,24 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+
 const Register = () => {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const onRegister = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:8080/api/register", {
+      await axios.post("/api/register", {
         name,
         email,
         password,
       });
       alert("Registered Successfully, User can login");
+      navigate("/login");
     } catch (error) {
-      console.log(error);
+      alert(error.message);
     }
   };
   return (
