@@ -1,8 +1,19 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const onLogin = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post("http://localhost:8080/api/login", { email, password });
+      alert("Login Successful");
+    } catch (error) {
+      alert(error.response.data.error);
+    }
+  };
+
   return (
     <div className=" w-screen flex justify-center items-center h-screen">
       <div className=" w-[25rem] shadow-lg p-14 mb-14 rounded-lg flex flex-col justify-center items-center border">
@@ -12,7 +23,7 @@ const Login = () => {
           alt="logo"
         />
 
-        <div className="flex flex-col gap-4 w-full">
+        <form onSubmit={onLogin} className="flex flex-col gap-4 w-full">
           <div className="flex flex-col gap-1 ">
             <label className="text-xs uppercase font-bold">Email</label>
             <input
@@ -40,7 +51,7 @@ const Login = () => {
               Register
             </Link>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
