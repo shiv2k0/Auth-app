@@ -7,8 +7,9 @@ import { Routes, Route } from "react-router-dom";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "./features/user/userSlice";
+// import.meta.env.REACT_APP_API_URL;
 
-axios.defaults.baseURL = "http://localhost:8080";
+axios.defaults.baseURL = import.meta.env.VITE_API_URL;
 axios.defaults.withCredentials = true;
 // without withCredentials true cookies info will not sent to server
 
